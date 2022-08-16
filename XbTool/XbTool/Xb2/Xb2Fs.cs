@@ -41,8 +41,8 @@ namespace XbTool.Xb2
                 }
             }
 
-            string arh = Path.Combine(baseDir, "bf2.arh");
-            string ard = Path.Combine(baseDir, "bf2.ard");
+            string arh = Path.Combine(baseDir, "bf3.arh");
+            string ard = Path.Combine(baseDir, "bf3.ard");
 
             if (File.Exists(arh) && File.Exists(ard))
             {

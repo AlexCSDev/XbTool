@@ -1,3 +1,3 @@
-# Xenoblade Research
+# Reading XC3 ARD/ARH
 
-Repo for scratch work from reversing all 3 Xenoblade games, tools for reading their files, and information discovered by reverse engineering them.
+xbtool.exe -g xb2 -t ExtractArchive -a bf3.arh bf3.ard -o unpack_xbtool

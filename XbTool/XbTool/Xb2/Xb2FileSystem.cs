@@ -17,8 +17,8 @@ namespace XbTool.Xb2
             Application xb2App = sdFs.Applications[0x0100E95004038000];
 
             IFileSystem mainFs = xb2App.Patch.MainNca.OpenSectionFileSystem(1, IntegrityCheckLevel.ErrorOnInvalid);
-            IFile mainArh = mainFs.OpenFile("/bf2.arh", OpenMode.Read);
-            IFile mainArd = mainFs.OpenFile("/bf2.ard", OpenMode.Read);
+            IFile mainArh = mainFs.OpenFile("/bf3.arh", OpenMode.Read);
+            IFile mainArd = mainFs.OpenFile("/bf3.ard", OpenMode.Read);
 
             var mainArchiveFs = new ArchiveFileSystem(mainArh, mainArd);
 
