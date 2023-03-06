@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using DotNet.Globbing;
 using ImpromptuNinjas.ZStd;
@@ -204,13 +205,17 @@ namespace XbTool.Xb2
             }
         }
 
-        private void CompressFile(Stream input, Stream output)
+        private void CompressFile(MemoryStream input, MemoryStream output)
         {
-            /*using (var deflate = new ZlibStream(input, CompressionMode.Compress, CompressionLevel.BestCompression, true))
+            using(var compressor = new ZStdCompressor())
             {
-                deflate.CopyTo(output, (int)input.Length);
-            }*/
-            throw new Exception("ERROR");
+                byte[] inputData = input.ToArray();
+                var compressBufferSize = CCtx.GetUpperBound((UIntPtr)inputData.Length).ToUInt32();
+                var compressBuffer = new byte[compressBufferSize];
+                compressor.Set(CompressionParameter.CompressionLevel, ZStdCompressor.MaximumCompressionLevel);
+                var compressedSize = compressor.Compress(compressBuffer, inputData).ToUInt32();
+                output.Write(compressBuffer, 0, (int)compressedSize);
+            }
         }
 
         public void ReplaceFile(FileInfo fileInfo, byte[] data)
