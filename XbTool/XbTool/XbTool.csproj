@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net46;netcoreapp2.1</TargetFrameworks>
+    <TargetFrameworks>net48;netcoreapp2.1</TargetFrameworks>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,10 +19,12 @@
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="7.0.1" />
     <PackageReference Include="DotNet.Glob" Version="2.0.3" />
+    <PackageReference Include="ImpromptuNinjas.ZStd" Version="1.4.5.5" />
     <PackageReference Include="LibHac" Version="0.3.1" />
+    <PackageReference Include="NLog" Version="5.0.2" />
     <PackageReference Include="Npgsql" Version="4.0.3" />
-    <PackageReference Condition=" '$(TargetFramework)' == 'net46' " Include="System.ValueTuple" Version="4.5.0" />
-    <PackageReference Condition=" '$(TargetFramework)' == 'net46' " Include="DotNetZip" Version="1.11.0" />
+    <PackageReference Condition=" '$(TargetFramework)' == 'net48' " Include="System.ValueTuple" Version="4.5.0" />
+    <PackageReference Condition=" '$(TargetFramework)' == 'net48' " Include="DotNetZip" Version="1.11.0" />
     <PackageReference Condition=" '$(TargetFramework)' == 'netcoreapp2.1' " Include="Iconic.Zlib.Netstandard" Version="1.0.0" />
     <PackageReference Condition=" '$(TargetFramework)' == 'netcoreapp2.1' " Include="System.Drawing.Common" Version="4.5.0" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
@@ -29,6 +32,12 @@
 
   <ItemGroup>
     <None Update="Data\*.csv" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="NLog.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

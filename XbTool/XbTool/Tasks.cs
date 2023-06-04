@@ -23,9 +23,13 @@ namespace XbTool
     {
         internal static void RunTask(Options options)
         {
+            if (options.Task != Task.ExtractArchive && options.Task != Task.ReplaceArchive && options.Game == Game.XB3)
+                throw new NotImplementedException("Xenoblade 3 is not supported for this command");
+
             using (var progress = new ProgressBar())
             {
                 options.Progress = progress;
+
                 switch (options.Task)
                 {
                     case Task.ExtractArchive:
@@ -107,10 +111,22 @@ namespace XbTool
         {
             if (options.ArdFilename == null) throw new NullReferenceException("Archive must be specified");
 
-            using (var archive = new FileArchive(options.ArhFilename, options.ArdFilename))
+            if (options.Game == Game.XB2)
             {
-                FileArchive.Extract(archive, options.Output, options.Progress);
+                using (var archive = new Xb2.FileArchive(options.ArhFilename, options.ArdFilename))
+                {
+                    Xb2.FileArchive.Extract(archive, options.Output, options.Progress);
+                }
             }
+            else if (options.Game == Game.XB3)
+            {
+                using (var archive = new Xb3.FileArchive(options.ArhFilename, options.ArdFilename))
+                {
+                    Xb3.FileArchive.Extract(archive, options.Output, options.Progress);
+                }
+            }
+            else
+                throw new ArgumentException("Unsupported game");
         }
 
         private static void ReplaceArchive(Options options)
@@ -119,11 +135,24 @@ namespace XbTool
             if (options.Input == null) throw new NullReferenceException("No input file was specified.");
             if (options.Output == null) throw new NullReferenceException("No output file was specified.");
 
-            using (var archive = new FileArchive(options.ArhFilename, options.ArdFilename))
+            if (options.Game == Game.XB2)
             {
-                byte[] replacement = File.ReadAllBytes(options.Input);
-                archive.ReplaceFile(options.Output, replacement);
+                using (var archive = new Xb2.FileArchive(options.ArhFilename, options.ArdFilename))
+                {
+                    byte[] replacement = File.ReadAllBytes(options.Input);
+                    archive.ReplaceFile(options.Output, replacement);
+                }
             }
+            else if (options.Game == Game.XB3)
+            {
+                using (var archive = new Xb3.FileArchive(options.ArhFilename, options.ArdFilename))
+                {
+                    byte[] replacement = File.ReadAllBytes(options.Input);
+                    archive.ReplaceFile(options.Output, replacement);
+                }
+            }
+            else
+                throw new ArgumentException("Unsupported game");
         }
 
         private static void DecryptBdat(Options options)
