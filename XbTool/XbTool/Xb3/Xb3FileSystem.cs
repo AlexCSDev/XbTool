@@ -4,21 +4,22 @@ using System.IO;
 using System.Linq;
 using LibHac;
 using LibHac.IO;
+using XbTool.Xb2;
 
-namespace XbTool.Xb2
+namespace XbTool.Xb3
 {
-    public class Xb2FileSystem : IFileSystem
+    public class Xb3FileSystem : IFileSystem
     {
         private IFileSystem BaseFs { get; }
 
-        public Xb2FileSystem(string sdPath)
+        public Xb3FileSystem(string sdPath)
         {
             SwitchFs sdFs = OpenSdCard(sdPath);
             Application xb2App = sdFs.Applications[0x0100E95004038000];
 
             IFileSystem mainFs = xb2App.Patch.MainNca.OpenSectionFileSystem(1, IntegrityCheckLevel.ErrorOnInvalid);
-            IFile mainArh = mainFs.OpenFile("/bf2.arh", OpenMode.Read);
-            IFile mainArd = mainFs.OpenFile("/bf2.ard", OpenMode.Read);
+            IFile mainArh = mainFs.OpenFile("/bf3.arh", OpenMode.Read);
+            IFile mainArd = mainFs.OpenFile("/bf3.ard", OpenMode.Read);
 
             var mainArchiveFs = new ArchiveFileSystem(mainArh, mainArd);
 
@@ -58,7 +59,7 @@ namespace XbTool.Xb2
         {
             path = PathTools.Normalize(path);
 
-            if(IsArchiveFile(path)) throw new FileNotFoundException();
+            if (IsArchiveFile(path)) throw new FileNotFoundException();
 
             return BaseFs.OpenFile(path, mode);
         }
@@ -133,7 +134,7 @@ namespace XbTool.Xb2
             return ExternalKeys.ReadKeyFile(homeKeyFile, homeTitleKeyFile, homeConsoleKeyFile);
         }
 
-        public void Commit(){}
+        public void Commit() { }
 
         public void CreateDirectory(string path) => throw new NotSupportedException();
         public void CreateFile(string path, long size, CreateFileOptions options) => throw new NotSupportedException();

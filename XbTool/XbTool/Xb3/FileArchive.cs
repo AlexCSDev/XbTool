@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using DotNet.Globbing;
+using ImpromptuNinjas.ZStd;
 using Ionic.Zlib;
 using LibHac;
+using NLog;
 using XbTool.Common;
+using Buffer = System.Buffer;
 
-namespace XbTool.Xb2
+namespace XbTool.Xb3
 {
     public class FileArchive : IDisposable, IFileReader
     {
@@ -29,6 +33,9 @@ namespace XbTool.Xb2
         private string HeaderFilename { get; }
         private byte[] HeaderFile { get; }
         private DataBuffer HeaderFileData { get; }
+
+
+        private static ILogger _logger = LogManager.GetCurrentClassLogger();
 
         public FileArchive(string headerFilename, string dataFilename)
         {
@@ -160,7 +167,7 @@ namespace XbTool.Xb2
         {
             if (fileInfo.Offset + fileInfo.CompressedSize > Length) return null;
 
-            int fileSize = fileInfo.Type == 2 ? fileInfo.UncompressedSize : fileInfo.CompressedSize;
+            int fileSize = fileInfo.Type > 0 ? fileInfo.UncompressedSize : fileInfo.CompressedSize;
             var output = new byte[fileSize];
             OutputFile(fileInfo, new MemoryStream(output));
 
@@ -175,28 +182,39 @@ namespace XbTool.Xb2
         private void OutputFile(FileInfo fileInfo, Stream input, Stream output)
         {
             input.Position = fileInfo.Offset;
-
             switch (fileInfo.Type)
             {
-                case 2:
-                    input.Position += 0x30;
-
-                    using (var deflate = new ZlibStream(input, CompressionMode.Decompress, true))
-                    {
-                        deflate.CopyTo(output, fileInfo.UncompressedSize);
-                    }
-                    break;
                 case 0:
                     input.CopyStream(output, fileInfo.CompressedSize);
+                    break;
+                default:
+                    input.Position += 0x30;
+
+                    byte[] compressedData = new byte[fileInfo.CompressedSize];
+                    input.Read(compressedData, 0, fileInfo.CompressedSize);
+
+                    using (var decompressor = new ZStdDecompressor())
+                    {
+                        byte[] decompressedData = new byte[fileInfo.UncompressedSize];
+                        decompressor.Decompress(decompressedData, compressedData);
+
+                        output.Write(decompressedData, 0, decompressedData.Length);
+                    }
+
                     break;
             }
         }
 
-        private void CompressFile(Stream input, Stream output)
+        private void CompressFile(MemoryStream input, MemoryStream output)
         {
-            using (var deflate = new ZlibStream(input, CompressionMode.Compress, CompressionLevel.BestCompression, true))
+            using (var compressor = new ZStdCompressor())
             {
-                deflate.CopyTo(output, (int)input.Length);
+                byte[] inputData = input.ToArray();
+                var compressBufferSize = CCtx.GetUpperBound((UIntPtr)inputData.Length).ToUInt32();
+                var compressBuffer = new byte[compressBufferSize];
+                compressor.Set(CompressionParameter.CompressionLevel, ZStdCompressor.MaximumCompressionLevel);
+                var compressedSize = compressor.Compress(compressBuffer, inputData).ToUInt32();
+                output.Write(compressBuffer, 0, (int)compressedSize);
             }
         }
 
@@ -306,10 +324,19 @@ namespace XbTool.Xb2
                 string dir = Path.GetDirectoryName(filename) ?? throw new InvalidOperationException();
                 Directory.CreateDirectory(dir);
 
-                using (var outStream = new FileStream(filename, FileMode.Create, FileAccess.Write))
+                try
                 {
-                    archive.OutputFile(fileInfo, outStream);
+                    using (var outStream = new FileStream(filename, FileMode.Create, FileAccess.Write))
+                    {
+                        archive.OutputFile(fileInfo, outStream);
+                    }
                 }
+                catch (Exception ex)
+                {
+                    _logger.Error($"Unable to output file: {fileInfo.Filename}");
+                    File.Delete(filename);
+                }
+
                 progress?.ReportAdd(1);
             }
         }
@@ -345,13 +372,5 @@ namespace XbTool.Xb2
         public int UncompressedSize { get; }
         public int Type { get; }
         public int Id { get; }
-
-        public int GetDataLength()
-        {
-            int length = CompressedSize;
-            if (Type == 2) length += 0x30;
-            length = Helpers.GetNextMultiple(length, 0x10);
-            return length;
-        }
     }
 }

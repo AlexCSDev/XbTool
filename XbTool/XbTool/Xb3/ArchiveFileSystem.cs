@@ -5,8 +5,9 @@ using System.Linq;
 using Ionic.Zlib;
 using LibHac.IO;
 using LibHac.IO.RomFs;
+using XbTool.Xb2;
 
-namespace XbTool.Xb2
+namespace XbTool.Xb3
 {
     public class ArchiveFileSystem : IFileSystem
     {
@@ -122,7 +123,7 @@ namespace XbTool.Xb2
 
                     using (var deflate = new ZlibStream(compStream, CompressionMode.Decompress, true))
                     {
-                        deflate.CopyTo(new MemoryStream(decompData), fileInfo.UncompressedSize);
+                        deflate.CopyTo(new MemoryStream(decompData), (int)fileInfo.UncompressedSize);
                     }
 
                     return new ArchiveFile(decompData, OpenMode.Read);

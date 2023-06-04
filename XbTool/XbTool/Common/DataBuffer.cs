@@ -369,6 +369,7 @@ namespace XbTool.Common
         XB1 = 1,
         XBX,
         XB2,
-        XB1DE
+        XB1DE,
+        XB3
     }
 }

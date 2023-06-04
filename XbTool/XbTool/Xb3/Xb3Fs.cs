@@ -5,15 +5,15 @@ using System.Linq;
 using DotNet.Globbing;
 using XbTool.Common;
 
-namespace XbTool.Xb2
+namespace XbTool.Xb3
 {
-    public class Xb2Fs : IDisposable, IFileReader
+    public class Xb3Fs : IDisposable, IFileReader
     {
         public List<string> Directories { get; } = new List<string>();
         private Dictionary<string, FsFile> Files { get; } = new Dictionary<string, FsFile>(StringComparer.OrdinalIgnoreCase);
         public FileArchive Archive { get; }
 
-        public Xb2Fs(string directory)
+        public Xb3Fs(string directory)
         {
             string baseDir = Path.Combine(directory, "base");
             string dlcDir = Path.Combine(directory, "dlc");
@@ -41,8 +41,8 @@ namespace XbTool.Xb2
                 }
             }
 
-            string arh = Path.Combine(baseDir, "bf2.arh");
-            string ard = Path.Combine(baseDir, "bf2.ard");
+            string arh = Path.Combine(baseDir, "bf3.arh");
+            string ard = Path.Combine(baseDir, "bf3.ard");
 
             if (File.Exists(arh) && File.Exists(ard))
             {
